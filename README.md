@@ -36,6 +36,7 @@ pandas == 1.2.4
 ![image](https://user-images.githubusercontent.com/26786836/197940451-0e84ae4d-94bc-4308-878c-2f67ceab1f19.png)
 
 4-3. Cropped finger images for assessment (prediction)
+
 ![image](https://user-images.githubusercontent.com/26786836/197940585-a3992391-1cea-45d4-af0a-f955dec6327f.png)
 
 5. input these images to the CNN model and get the prediction, and then show the results on the hand image
