@@ -49,5 +49,8 @@ pandas == 1.2.4
 
 ![image](https://user-images.githubusercontent.com/26786836/201475957-444076ea-8cb0-4179-9bd6-3295e2f0f835.png)
 
+8. Accuracy of Ensemble Model can reach 94%, and weighted Ensemble Model can reach 95%.
+
+![image](https://user-images.githubusercontent.com/26786836/201476300-4afc5923-b2c3-42ad-82ce-5f26718070f4.png)
 
 
