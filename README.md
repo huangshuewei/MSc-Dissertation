@@ -45,4 +45,9 @@ pandas == 1.2.4
 
 6. in this case, the little finger get the wrong result due to the black lines crossing on the finger.
 
+7. Accuracy of different CNN-classifers
+
+![image](https://user-images.githubusercontent.com/26786836/201475957-444076ea-8cb0-4179-9bd6-3295e2f0f835.png)
+
+
 
