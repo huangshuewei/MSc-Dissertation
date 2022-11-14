@@ -79,17 +79,18 @@ y_pred_pca = bnb.fit(x_train_pca, y_train_label).predict(x_test_pca)
 
 # compute accuracy
 from sklearn import metrics
-print ("Accuracy = ", metrics.accuracy_score(y_test_label, y_pred_pca)*100, "%")
+#print ("BernoulliNB Accuracy = ", metrics.accuracy_score(y_test_label, y_pred_pca)*100, "%")
 
 # Try KNN
 from sklearn.neighbors import KNeighborsClassifier
 KNN = KNeighborsClassifier(n_neighbors=15)
 y_pred_pca_knn = KNN.fit(x_train_pca, y_train_label).predict(x_test_pca)
-print ("Accuracy = ", metrics.accuracy_score(y_test_label, y_pred_pca_knn)*100, "%")
+#print ("KNN Accuracy = ", metrics.accuracy_score(y_test_label, y_pred_pca_knn)*100, "%")
 
 # Try neural network
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout
+from tensorflow.keras.optimizers import Adam
 
 # define the keras ANN model
 model = Sequential()
@@ -101,14 +102,15 @@ model.add(Dense(256, activation='relu'))
 model.add(Dropout(0.2))
 model.add(Dense(6, activation='softmax'))
 
-model.compile(optimizer = 'adam',loss = 'categorical_crossentropy', metrics = ['accuracy'])
-print(model.summary()) 
+adam_opt = Adam(learning_rate=0.00001)
+model.compile(optimizer = adam_opt, loss = 'categorical_crossentropy', metrics = ['accuracy'])
+#print(model.summary()) 
 
 # Model checkpoint
 import tensorflow as tf
 checkpointer = tf.keras.callbacks.ModelCheckpoint('model_pca_ann.h5', verbose=1, save_best_only=True)
 
-callbacks = [tf.keras.callbacks.EarlyStopping(patience=10, monitor='val_loss'),
+callbacks = [tf.keras.callbacks.EarlyStopping(patience=20, monitor='val_loss'),
             tf.keras.callbacks.TensorBoard(log_dir='logs'),
             checkpointer]
 
@@ -116,7 +118,7 @@ results = model.fit(x_train_pca, y_train_label_cat, validation_data=(x_val_pca, 
 
 # compute accuracy
 y_pred_pca_ann = model.predict(x_test_pca)
-print ("Accuracy = ", metrics.accuracy_score(y_test_label, np.argmax(y_pred_pca_ann, axis=1))*100, "%")
+#print ("ANN Accuracy = ", metrics.accuracy_score(y_test_label, np.argmax(y_pred_pca_ann, axis=1))*100, "%")
 
 ###########################################################
 # GRID SEARCH to find the best model and parameters
@@ -177,14 +179,48 @@ print(df)
 svc_mdl = SVC(gamma='auto', C= 0.1, kernel='linear')
 svc_mdl.fit(x_train_pca, y_train_label)
 pred_svc = svc_mdl.predict(x_test_pca)
-print ("SVM Accuracy = ", metrics.accuracy_score(y_test_label, pred_svc)*100, "%")
+#print ("SVM Accuracy = ", metrics.accuracy_score(y_test_label, pred_svc)*100, "%")
 
-rf_mdl = RandomForestClassifier(criterion = 'log_loss', max_depth=10, n_estimators=100)
+rf_mdl = RandomForestClassifier(criterion = 'entropy', max_depth=12, n_estimators=100)
 rf_mdl.fit(x_train_pca, y_train_label)
 pred_rf = rf_mdl.predict(x_test_pca)
-print ("RF Accuracy = ", metrics.accuracy_score(y_test_label, pred_rf)*100, "%")
+#print ("RF Accuracy = ", metrics.accuracy_score(y_test_label, pred_rf)*100, "%")
 
 lr_mdl = LogisticRegression(C=0.1, penalty='l1', solver='liblinear', multi_class='auto')
 lr_mdl.fit(x_train_pca, y_train_label)
 pred_lr = lr_mdl.predict(x_test_pca)
-print ("LR Accuracy = ", metrics.accuracy_score(y_test_label, pred_lr)*100, "%")
+#print ("LR Accuracy = ", metrics.accuracy_score(y_test_label, pred_lr)*100, "%")
+
+# ensemble model
+pred_ensembles = np.array([y_pred_pca, 
+                           y_pred_pca_knn, 
+                           np.argmax(y_pred_pca_ann, axis=1),
+                           pred_svc, 
+                           pred_rf, 
+                           pred_lr]).T
+avg_ensemble_pred = np.array([round(np.average(pred_ensembles[i])) for i in range(len(pred_ensembles))])
+med_ensemble_pred = np.array([round(np.median(pred_ensembles[i])) for i in range(len(pred_ensembles))])
+
+def most_frequent(List):
+    counter = 0
+    num = List[0]
+     
+    for i in list(List):
+        curr_frequency = list(List).count(i)
+        if(curr_frequency> counter):
+            counter = curr_frequency
+            num = i
+ 
+    return num
+
+vote_ensemble_pred = np.array([most_frequent(pred_ensembles[i]) for i in range(len(pred_ensembles))])
+
+print ("BernoulliNB Accuracy = ", metrics.accuracy_score(y_test_label, y_pred_pca)*100, "%")
+print ("KNN Accuracy         = ", metrics.accuracy_score(y_test_label, y_pred_pca_knn)*100, "%")
+print ("ANN Accuracy         = ", metrics.accuracy_score(y_test_label, np.argmax(y_pred_pca_ann, axis=1))*100, "%")
+print ("SVM Accuracy         = ", metrics.accuracy_score(y_test_label, pred_svc)*100, "%")
+print ("RF Accuracy          = ", metrics.accuracy_score(y_test_label, pred_rf)*100, "%")
+print ("LR Accuracy          = ", metrics.accuracy_score(y_test_label, pred_lr)*100, "%")
+print ("AVG_ensemble Accuracy  = ", metrics.accuracy_score(y_test_label, avg_ensemble_pred)*100, "%")
+print ("MED_ensemble Accuracy  = ", metrics.accuracy_score(y_test_label, med_ensemble_pred)*100, "%")
+print ("VOTE_ensemble Accuracy = ", metrics.accuracy_score(y_test_label, vote_ensemble_pred)*100, "%")
